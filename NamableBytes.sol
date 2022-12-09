@@ -12,8 +12,9 @@ contract Namable {
 
         require(validateName(newName), "InvalidNewName");
         bool isEqual;
+        //keccak256 unecessary for 25 char limited strings
         assembly {
-            isEqual := eq(keccak256(add(newName, 0x20), mload(newName)), keccak256(add(oldName, 0x20), mload(oldName)))
+            isEqual := eq(mload(add(newName, 32)),  mload(add(oldName, 32)))
         }
         require(!isEqual, "NameMustBeDifferent"); 
         require(!isNameReserved(newName), "NameAlreadyReserved");
@@ -65,7 +66,7 @@ contract Namable {
     
     function toBytes(string memory str) internal pure returns (bytes32 result) {
         //return byte32(abi.encodePacked(str));
-        //assembly is even cheaper, we know the string can only be 25 bytes based on the character limit
+        //assembly is even cheaper than above: we know the string can only be 25 bytes based on the character limit
         assembly {
             result := mload(add(str, 32))
         }
