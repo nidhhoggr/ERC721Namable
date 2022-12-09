@@ -62,8 +62,12 @@ contract Namable {
             (char == 0x20) //space
         );
     }
-
-    function toBytes(string memory str) public pure returns (bytes32 result) {
-        return keccak256(abi.encodePacked(str));
+    
+    function toBytes(string memory str) internal pure returns (bytes32 result) {
+        //return byte32(abi.encodePacked(str));
+        //assembly is even cheaper, we know the string can only be 25 bytes based on the character limit
+        assembly {
+            result := mload(add(str, 32))
+        }
     }
 }
