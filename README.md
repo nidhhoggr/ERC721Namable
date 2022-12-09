@@ -114,10 +114,13 @@ A new superclass to handle name reservation with the optimization described in s
 
 A new superclass to replace string mapping with bytes32 mapping with the optimization described in step 3.
 
+### Dudez.sol
+
+An example ERC721 token implementing the newly optimized Namable class.
 
 ## Benchmarking
 
-In debugging transactions I was able to deduct that the Bytes32 mapping implementation saved up to several thousand wei in gas costs depending on the method called.
+In debugging transactions I was able to deduct that the Bytes32 mapping implementation saved up to several thousand wei in gas costs depending on the method called. Not the deployment costs increased from ~50k when changing reserveName from internal to public for easier testing.
 
 ```
 String Mapping:
