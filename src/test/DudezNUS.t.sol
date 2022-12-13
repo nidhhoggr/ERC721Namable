@@ -4,22 +4,23 @@ pragma solidity >=0.8.0;
 import {DSTest} from "ds-test/test.sol";
 import {console} from "./utils/Console.sol";
 import {Vm} from "forge-std/Vm.sol";
-import {Dudez} from "./../ERC721Namable/Dudez.sol";
+import {DudezNUS} from "./../NamableUsingString/Dudez.sol";
 
-contract DudezERC721NamableTest is DSTest {
+contract DudezNUSTest is DSTest {
 
-    Dudez dudezContract;
+    DudezNUS dudezContract;
     Vm internal immutable vm = Vm(HEVM_ADDRESS);
     address bob = address(0x1);
 
     function setUp() public {
-        address deployedDudez = address(new Dudez());
+        address deployedDudez = address(new DudezNUS());
         vm.etch(address(dudezContract), deployedDudez.code);
-        dudezContract.mint(address(bob), 1);
+        dudezContract.mint(bob);
+        dudezContract.mint(bob);
     }
 
     function testDeploy() public {
-        new Dudez();
+        new DudezNUS();
     }
 
     function testChangeName() public {
