@@ -1,10 +1,10 @@
 # ERC721Namable
 
-In this repository I seek to optimize Kongz' implementation of ERC721Namable.
+In this repository I seek to optimize Kongz implementation of ERC721Namable. The benchmarking is conducted using Foundry gas snapshots.
 
 ## Methodology
 
-1. CyberKongz already stroes all of their Kongz in a token struct mapping. Instead it's more optimal to store the name and bio in this Kongz struct mapping.
+1. CyberKongz already stores their Kongz in a token struct mapping. Instead it's more optimal to also store the name and bio in this Kongz struct mapping.
 
 ### From 
 
@@ -48,12 +48,12 @@ In this repository I seek to optimize Kongz' implementation of ERC721Namable.
     function changeBio(uint256 _tokenId, string memory _bio) public {
         require(ownerOf(_tokenId) == _msgSender(), "InvalidOwner");
         Kongz storage kong = kongz[_tokenId];
-        kong.bio = _newName;
+        kong.bio = _bio;
         emit BioChange(_tokenId, _bio);
     }
 ```
 
-3. Last we use a bytes32 mapping instead of a string mapping to check if the names are reserved by using keccak abi-encoding instead of the toLower method
+3. Last we use a bytes32 mapping instead of a string mapping to check if the names are reserved by using assembly bytes conversion instead of the toLower method
 
 ### From
 ```Solidity
@@ -102,45 +102,58 @@ In this repository I seek to optimize Kongz' implementation of ERC721Namable.
 
 ## Files
 
-### ERC721Namable.sol
+### src/ERC721Namable/
 
 The Kongz original implementation for reference purposes.
 
-### NamableString.sol
+### src/NamableUsingString/
 
 A new superclass to handle name reservation with the optimization described in step 2.
 
-### NamableBytes.sol
+### src/NamableUsingBytes/
 
 A new superclass to replace string mapping with bytes32 mapping with the optimization described in step 3.
-
-### Dudez.sol
-
-An example ERC721 token implementing the newly optimized Namable class.
 
 ## Benchmarking
 
 In debugging transactions I was able to deduct that the Bytes32 mapping implementation saved up to several thousand wei in gas costs depending on the method called. Not the deployment costs increased from ~50k when changing reserveName from internal to public for easier testing.
 
+### Original Kongz ERC721Namable
 ```
-String Mapping:
-  Deployment: 618680
-  isNameReserved: 25484
-  validateName: 26352
-  toLower: 23327
-  Reserve Name: 59530
-  Reserve Name (From Old): 62958
-  New Reserve Name: 48268
+DudezERC721NamableTest:testChangeAndGetName() (gas: 74545)
+DudezERC721NamableTest:testChangeAndGetNameEmpty() (gas: 9287)
+DudezERC721NamableTest:testChangeAndGetReserved() (gas: 72002)
+DudezERC721NamableTest:testChangeAndGetReservedEmpty() (gas: 10146)
+DudezERC721NamableTest:testChangeBio() (gas: 83083)
+DudezERC721NamableTest:testChangeName() (gas: 71405)
+DudezERC721NamableTest:testDeploy() (gas: 1851949)
+DudezERC721NamableTest:testValidateName() (gas: 11286)
+```
 
-Bytes Mapping:
-  Deployment: 570300
-  isNameReserved: 24712
-  validateName: same
-  toBytes: 22531
-  Reserve Name: 50215
-  Reserve Name (From Old):  50755
+### Using String mapping with an assembly-optimized toLower method
 ```
+DudezNUSTest:testChangeAndGetName() (gas: 71347)
+DudezNUSTest:testChangeAndGetNameEmpty() (gas: 9301)
+DudezNUSTest:testChangeAndGetReserved() (gas: 69071)
+DudezNUSTest:testChangeAndGetReservedEmpty() (gas: 8971)
+DudezNUSTest:testChangeBio() (gas: 84968)
+DudezNUSTest:testChangeName() (gas: 68193)
+DudezNUSTest:testDeploy() (gas: 1457073)
+DudezNUSTest:testValidateName() (gas: 10779)
+```
+
+### Using Bytes32 Mapping (Most optimal)
+```
+DudezNUBTest:testChangeAndGetName() (gas: 69835)
+DudezNUBTest:testChangeAndGetNameEmpty() (gas: 9323)
+DudezNUBTest:testChangeAndGetReserved() (gas: 67226)
+DudezNUBTest:testChangeAndGetReservedEmpty() (gas: 8356)
+DudezNUBTest:testChangeBio() (gas: 84968)
+DudezNUBTest:testChangeName() (gas: 66659)
+DudezNUBTest:testDeploy() (gas: 1416190)
+DudezNUBTest:testValidateName() (gas: 10779)
+```
+
 
 ## Questions
-
 Does this scale out to even further gas savings?
