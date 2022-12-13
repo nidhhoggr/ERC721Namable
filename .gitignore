@@ -2,5 +2,5 @@ out/
 cache/
 node_modules/
 .env
-src/artifacts/
+artifacts/
 .deps

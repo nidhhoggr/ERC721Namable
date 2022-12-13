@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
 import "./ERC721Namable.sol";
 
 pragma solidity ^0.8.17;
 
-contract Dudez is ERC721Namable, Ownable  {
+contract Dudez is ERC721Namable {
 
     struct Dude {
         uint256 bornAt;
@@ -26,10 +24,7 @@ contract Dudez is ERC721Namable, Ownable  {
         super.changeBio(_tokenId, _bio);
     }
 
-    function _msgSender() internal view override() {
-      returns (address sender) {
-      sender = _msgSender();
+    function mint(address to, uint256 tokenId) payable public {
+        _mint(to, tokenId);
     }
-
-
 }

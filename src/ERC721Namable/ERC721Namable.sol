@@ -24,14 +24,7 @@ contract ERC721Namable is ERC721 {
     event NameChange (uint256 indexed tokenId, string newName);
     event BioChange (uint256 indexed tokenId, string bio);
 
-    constructor(string memory _name, string memory _symbol, string[] memory _names, uint256[] memory _ids) public ERC721(_name, _symbol) {
-        for (uint256 i = 0; i < _ids.length; i++)
-        {
-            toggleReserveName(_names[i], true);
-            _tokenName[_ids[i]] = _names[i];
-            emit NameChange(_ids[i], _names[i]);
-        }
-    }
+    constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) {}
 
     function changeBio(uint256 _tokenId, string memory _bio) public virtual {
         address owner = ownerOf(_tokenId);

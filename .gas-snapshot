@@ -1,0 +1,8 @@
+DudezERC721NamableTest:testChangeAndGetName() (gas: 74545)
+DudezERC721NamableTest:testChangeAndGetNameEmpty() (gas: 9287)
+DudezERC721NamableTest:testChangeAndGetReserved() (gas: 72002)
+DudezERC721NamableTest:testChangeAndGetReservedEmpty() (gas: 10146)
+DudezERC721NamableTest:testChangeBio() (gas: 83083)
+DudezERC721NamableTest:testChangeName() (gas: 71405)
+DudezERC721NamableTest:testDeploy() (gas: 1851949)
+DudezERC721NamableTest:testValidateName() (gas: 11286)
