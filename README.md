@@ -102,7 +102,7 @@ In this repository I seek to optimize Kongz implementation of ERC721Namable. The
 
 > 4. Next we just get rid of all `string memory` parameters and used bytes32 instead ommiting the need for toBytes function calls when storing `_nameReserved`. Additionally custom errors save several thousand on deployment costs.
 
-```
+```solidity
     function reserveName(bytes32 newName, bytes32 oldName) internal {
 
         if(!validateName(newName)) revert InvalidNewName();
