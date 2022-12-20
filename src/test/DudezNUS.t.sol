@@ -8,15 +8,14 @@ import {DudezNUS} from "./../NamableUsingString/Dudez.sol";
 
 contract DudezNUSTest is DSTest {
 
-    DudezNUS dudezContract;
+    DudezNUS deployedDudez;
     Vm internal immutable vm = Vm(HEVM_ADDRESS);
     address bob = address(0x1);
 
     function setUp() public {
-        address deployedDudez = address(new DudezNUS());
-        vm.etch(address(dudezContract), deployedDudez.code);
-        dudezContract.mint(bob);
-        dudezContract.mint(bob);
+        deployedDudez = new DudezNUS();
+        deployedDudez.mint(bob);
+        deployedDudez.mint(bob);
     }
 
     function testDeploy() public {
@@ -25,35 +24,35 @@ contract DudezNUSTest is DSTest {
 
     function testChangeName() public {
         vm.startPrank(bob);
-        dudezContract.changeName(1, "Harry");
+        deployedDudez.changeName(1, "Harry");
     }
 
     function testChangeBio() public {
         vm.startPrank(bob);
-        dudezContract.changeBio(1, "Harry is angry, old, smelly and bald.");
+        deployedDudez.changeBio(1, "Harry is angry, old, smelly and bald.");
     }
 
     function testChangeAndGetNameEmpty() public {
-        assertEq(dudezContract.tokenNameByIndex(1), "");
+        assertEq(deployedDudez.tokenNameByIndex(1), "");
     }
 
     function testChangeAndGetReservedEmpty() public view {
-        assert(!dudezContract.isNameReserved("Moe"));
+        assert(!deployedDudez.isNameReserved("Moe"));
     }
 
     function testChangeAndGetName() public {
         vm.startPrank(bob);
-        dudezContract.changeName(1, "Harry");
-        assertEq(dudezContract.tokenNameByIndex(1), "Harry");
+        deployedDudez.changeName(1, "Harry");
+        assertEq(deployedDudez.tokenNameByIndex(1), "Harry");
     }
 
     function testChangeAndGetReserved() public {
         vm.startPrank(bob);
-        dudezContract.changeName(1, "Moe");
-        assert(dudezContract.isNameReserved("Moe"));
+        deployedDudez.changeName(1, "Moe");
+        assert(deployedDudez.isNameReserved("Moe"));
     }
 
     function testValidateName() public view {
-        assert(dudezContract.validateName("Katy Sue"));
+        assert(deployedDudez.validateName("Katy Sue"));
     }
 }

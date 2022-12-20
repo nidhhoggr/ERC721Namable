@@ -14,7 +14,6 @@ contract DudezNUBTest is DSTest {
 
     function setUp() public {
         deployedDudez = new DudezBUS();
-        //vm.etch(address(dudezContract), deployedDudez.code);
         deployedDudez.mint(bob);
         deployedDudez.mint(bob);
     }

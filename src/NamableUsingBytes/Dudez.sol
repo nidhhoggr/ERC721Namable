@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 import "./NamableUsingBytes.sol";
-import {ERC721A} from "./../../lib/ERC721A/contracts/ERC721A.sol";
+import {ERC721A} from "ERC721A/ERC721A.sol";
 
 pragma solidity ^0.8.17;
 
