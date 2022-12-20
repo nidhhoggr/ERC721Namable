@@ -5,72 +5,51 @@ contract NamableUsingBytes {
 
     mapping (bytes32 => bool) private _nameReserved;
 
-    event NameChange (uint256 indexed tokenId, string newName);
+    event NameChange (uint256 indexed tokenId, bytes32 newName);
     event BioChange (uint256 indexed tokenId, string bio);
 
-    function reserveName(string memory newName, string memory oldName) internal {
+    error InvalidNewName();
+    error NameMustBeDifferent();
+    error NameAlreadyReserved();
 
-        require(validateName(newName), "InvalidNewName");
-        bool isEqual;
-        //keccak256 unecessary for 25 char limited strings
-        assembly {
-            isEqual := eq(mload(add(newName, 32)),  mload(add(oldName, 32)))
-        }
-        require(!isEqual, "NameMustBeDifferent"); 
-        require(!isNameReserved(newName), "NameAlreadyReserved");
+    function reserveName(bytes32 newName, bytes32 oldName) internal {
+
+        if(!validateName(newName)) revert InvalidNewName();
+        if(newName == oldName) revert NameMustBeDifferent(); 
+        if(isNameReserved(newName)) revert NameAlreadyReserved();
 
         // If already named, dereserve old name
-        if (bytes(oldName).length > 0) {
-             _nameReserved[toBytes(oldName)] = false;
+        if (oldName[0] != 0) {
+             _nameReserved[oldName] = false;
         }
-        _nameReserved[toBytes(newName)] = true;
+        _nameReserved[newName] = true;
     }
 
-    function isNameReserved(string memory nameString) public view returns (bool) {
-        return _nameReserved[toBytes(nameString)];
+    function isNameReserved(bytes32 nameString) public view returns (bool) {
+        return _nameReserved[nameString];
     }
 
-    function tokenNameByIndex(uint256 index) public virtual view returns (string memory) {}
+    function tokenNameByIndex(uint256 index) public virtual view returns (bytes32) {}
 
-    function validateName(string memory str) public pure returns (bool){
-        bytes memory b = bytes(str);
-        uint256 bLen = b.length;
-        
-        if(bLen < 1) return false;
-        if(bLen > 25) return false; // Cannot be longer than 25 characters
-        if(b[0] == 0x20) return false; // Leading space
-        
-        bytes1 lastChar = b[bLen - 1];
-
-        if (lastChar == 0x20) return false; // Trailing space
-
-        for(uint i = 0; i<bLen;){
-            bytes1 char = b[i];
+    function validateName(bytes32 str) public pure returns (bool){
+        bytes1 lastChar;
+        uint8 bLen;
+        if (str[0] == 0x20) return false;//cannot contain leading space
+        while (bLen < 32 && str[bLen] != 0) {
+            bytes1 char = str[bLen];
             if (char == 0x20 && lastChar == 0x20) return false; // Cannot contain continous spaces
-            if (!isValid(char)) return false;
+            if (!(//not one of the following:
+                (char >= 0x30 && char <= 0x39) || //between 9-0
+                (char >= 0x41 && char <= 0x5A) || //between A-Z
+                (char >= 0x61 && char <= 0x7A) || //between a-z
+                (char == 0x20) //a space
+            )) return false;
             lastChar = char;
             unchecked {
-                ++i;
+                bLen++;
             }
         }
-
-        return true;
-    }
-
-    function isValid(bytes1 char) internal pure returns (bool) {
-        return (
-            (char >= 0x30 && char <= 0x39) || //9-0
-            (char >= 0x41 && char <= 0x5A) || //A-Z
-            (char >= 0x61 && char <= 0x7A) || //a-z
-            (char == 0x20) //space
-        );
-    }
-    
-    function toBytes(string memory str) internal pure returns (bytes32 result) {
-        //return byte32(abi.encodePacked(str));
-        //assembly is even cheaper than above: we know the string can only be 25 bytes based on the character limit
-        assembly {
-            result := mload(add(str, 32))
-        }
+        //finally must be 1 character && not have a trailing space
+        return (bLen > 0 && lastChar != 0x20); 
     }
 }

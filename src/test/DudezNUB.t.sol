@@ -8,15 +8,15 @@ import {DudezBUS} from "./../NamableUsingBytes/Dudez.sol";
 
 contract DudezNUBTest is DSTest {
 
-    DudezBUS dudezContract;
+    DudezBUS deployedDudez;
     Vm internal immutable vm = Vm(HEVM_ADDRESS);
     address bob = address(0x1);
 
     function setUp() public {
-        address deployedDudez = address(new DudezBUS());
-        vm.etch(address(dudezContract), deployedDudez.code);
-        dudezContract.mint(bob);
-        dudezContract.mint(bob);
+        deployedDudez = new DudezBUS();
+        //vm.etch(address(dudezContract), deployedDudez.code);
+        deployedDudez.mint(bob);
+        deployedDudez.mint(bob);
     }
 
     function testDeploy() public {
@@ -25,35 +25,66 @@ contract DudezNUBTest is DSTest {
 
     function testChangeName() public {
         vm.startPrank(bob);
-        dudezContract.changeName(1, "Harry");
+        deployedDudez.changeName(1, "Harry");
     }
 
     function testChangeBio() public {
         vm.startPrank(bob);
-        dudezContract.changeBio(1, "Harry is angry, old, smelly and bald.");
+        deployedDudez.changeBio(1, "Harry is angry, old, smelly and bald.");
     }
 
     function testChangeAndGetNameEmpty() public {
-        assertEq(dudezContract.tokenNameByIndex(1), "");
+        assertEq(deployedDudez.tokenNameByIndex(1), "");
     }
 
     function testChangeAndGetReservedEmpty() public view {
-        assert(!dudezContract.isNameReserved("Moe"));
+        assert(!deployedDudez.isNameReserved("Moe"));
     }
 
     function testChangeAndGetName() public {
         vm.startPrank(bob);
-        dudezContract.changeName(1, "Harry");
-        assertEq(dudezContract.tokenNameByIndex(1), "Harry");
+        deployedDudez.changeName(1, "Harry");
+        assertEq(deployedDudez.tokenNameByIndex(1), "Harry");
     }
 
     function testChangeAndGetReserved() public {
         vm.startPrank(bob);
-        dudezContract.changeName(1, "Moe");
-        assert(dudezContract.isNameReserved("Moe"));
+        deployedDudez.changeName(1, "Moe");
+        assert(deployedDudez.isNameReserved("Moe"));
     }
 
     function testValidateName() public view {
-        assert(dudezContract.validateName("Katy Sue"));
+        assert(deployedDudez.validateName("Katy Sue"));
+    }
+
+    function testValidateNameInvalidWithLeadingSpace() public view {
+        assert(!deployedDudez.validateName(" Katy Sue"));
+    }
+
+    function testValidateNameInvalidWithContinousSpace() public view {
+        assert(!deployedDudez.validateName("Katy  Sue"));
+    }
+
+    function testValidateNameInvalidWithTrailing() public view {
+        assert(!deployedDudez.validateName("Katy Sue "));
+    }
+
+    function testValidateNameInvalidWhenEmpty() public view {
+        assert(!deployedDudez.validateName(""));
+    }
+
+    function testValidateNameBeforeInvalidOnOverflow() public view {       
+        assert(deployedDudez.validateName("abcdefghijklmnopqrstuvwxyzabcdef"));
+        //test with a trailing space as well to ensure last char validation
+        assert(!deployedDudez.validateName("abcdefghijklmnopqrstuvwxyzabcde "));
+        //results in a compiler error 33 chars cant fit in bytes32
+        //assert(deployedDudez.validateName("abcdefghijklmnopqrstuvwxyzabcdefg"));
+    }
+
+    function testEnsuringNearlyOverflowingName() public {
+        vm.startPrank(bob);
+        deployedDudez.changeName(1, "abcdefghijklmnopqrstuvwxyzabcdef");
+        assert(deployedDudez.isNameReserved("abcdefghijklmnopqrstuvwxyzabcdef"));
+        assertEq(deployedDudez.tokenNameByIndex(1), "abcdefghijklmnopqrstuvwxyzabcdef");
     }
 }

@@ -10,7 +10,7 @@ contract DudezBUS is NamableUsingBytes, ERC721A {
     struct Dude {
         uint256 bornAt;
         bool isManifested;
-        string name;
+        bytes32 name;
         string bio;
     }
 
@@ -18,7 +18,7 @@ contract DudezBUS is NamableUsingBytes, ERC721A {
 
     constructor() ERC721A("Dudez", "DUDE") {}
 
-    function changeName(uint256 _tokenId, string memory _newName) public {
+    function changeName(uint256 _tokenId, bytes32 _newName) public {
         require(ownerOf(_tokenId) == _msgSenderERC721A(), "InvalidOwner");
         Dude storage dude = dudez[_tokenId];
         super.reserveName(_newName, dude.name);
@@ -34,7 +34,7 @@ contract DudezBUS is NamableUsingBytes, ERC721A {
     }
 
     //for benchmarking name lookups
-    function tokenNameByIndex(uint256 index) public view override returns (string memory) {
+    function tokenNameByIndex(uint256 index) public view override returns (bytes32) {
         Dude storage dude = dudez[index];
         return dude.name;
     }
