@@ -4,7 +4,7 @@ In this repository I seek to optimize Kongz implementation of ERC721Namable. The
 
 ## Methodology
 
-1. CyberKongz already stores their Kongz in a token struct mapping. Instead it's more optimal to also store the name and bio in this Kongz struct mapping.
+> 1. CyberKongz already stores their Kongz in a token struct mapping. Instead it's more optimal to also store the name and bio in this Kongz struct mapping.
 
 ### From 
 
@@ -33,7 +33,7 @@ In this repository I seek to optimize Kongz implementation of ERC721Namable. The
     mapping(uint256 => Kong) public kongz;
 ```
 
-2. Next we declare methods changeName and changeBio to call superclass methods for name validation and reservation but ultimately store the result name/bio in the child class struct
+> 2. Next we declare methods changeName and changeBio to call superclass methods for name validation and reservation but ultimately store the result name/bio in the child class struct
 
 ```Solidity
     function changeName(uint256 _tokenId, string memory _newName) public {
@@ -53,7 +53,7 @@ In this repository I seek to optimize Kongz implementation of ERC721Namable. The
     }
 ```
 
-3. Last we use a bytes32 mapping instead of a string mapping to check if the names are reserved by using assembly bytes conversion instead of the toLower method
+> 3. Last we use a bytes32 mapping instead of a string mapping to check if the names are reserved by using assembly bytes conversion instead of the toLower method
 
 ### From
 ```Solidity
@@ -100,6 +100,25 @@ In this repository I seek to optimize Kongz implementation of ERC721Namable. The
     }
 ```
 
+> 4. Next we just get rid of all `string memory` parameters and used bytes32 instead ommiting the need for toBytes function calls when storing `_nameReserved`. Additionally custom errors save several thousand on deployment costs.
+
+```
+    function reserveName(bytes32 newName, bytes32 oldName) internal {
+
+        if(!validateName(newName)) revert InvalidNewName();
+        if(newName == oldName) revert NameMustBeDifferent(); 
+        if(isNameReserved(newName)) revert NameAlreadyReserved();
+
+        // If already named, dereserve old name
+        if (oldName[0] != 0) {
+             _nameReserved[oldName] = false;
+        }
+        _nameReserved[newName] = true;
+    }
+```
+
+[Relevant git commit](https://github.com/nidhhoggr/ERC721Namable/commit/b9bfb04296ffe35be89b6fdde60b358db83eec2e)
+
 ## Files
 
 ### src/ERC721Namable/
@@ -144,16 +163,13 @@ DudezNUSTest:testValidateName() (gas: 10779)
 
 ### Using Bytes32 Mapping (Most optimal)
 ```
-DudezNUBTest:testChangeAndGetName() (gas: 69835)
-DudezNUBTest:testChangeAndGetNameEmpty() (gas: 9323)
-DudezNUBTest:testChangeAndGetReserved() (gas: 67226)
-DudezNUBTest:testChangeAndGetReservedEmpty() (gas: 8356)
-DudezNUBTest:testChangeBio() (gas: 84968)
-DudezNUBTest:testChangeName() (gas: 66659)
-DudezNUBTest:testDeploy() (gas: 1416190)
-DudezNUBTest:testValidateName() (gas: 10779)
+DudezNUBTest:testChangeAndGetName() (gas: 65595)
+DudezNUBTest:testChangeAndGetNameEmpty() (gas: 7758)
+DudezNUBTest:testChangeAndGetReserved() (gas: 64352)
+DudezNUBTest:testChangeAndGetReservedEmpty() (gas: 7682)
+DudezNUBTest:testChangeBio() (gas: 85012)
+DudezNUBTest:testChangeName() (gas: 64573)
+DudezNUBTest:testDeploy() (gas: 1260006)
+DudezNUBTest:testValidateName() (gas: 10770)
 ```
 
-
-## Questions
-Does this scale out to even further gas savings?
