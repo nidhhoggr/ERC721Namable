@@ -33,10 +33,9 @@ contract DudezBUS is NamableUsingBytes, ERC721A {
         emit BioChange(_tokenId, _bio);
     }
 
-    //for benchmarking name lookups
-    function tokenNameByIndex(uint256 index) public view override returns (bytes32) {
+    function tokenNameByIndex(uint256 index) public view override returns (string memory) {
         Dude storage dude = dudez[index];
-        return dude.name;
+        return toString(dude.name);
     }
 
     //for testing

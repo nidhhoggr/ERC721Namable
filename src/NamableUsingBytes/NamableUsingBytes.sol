@@ -29,7 +29,7 @@ contract NamableUsingBytes {
         return _nameReserved[nameString];
     }
 
-    function tokenNameByIndex(uint256 index) public virtual view returns (bytes32) {}
+    function tokenNameByIndex(uint256 index) public virtual view returns (string memory) {}
 
     function validateName(bytes32 str) public pure returns (bool){
         bytes1 lastChar;
@@ -51,5 +51,23 @@ contract NamableUsingBytes {
         }
         //finally must be 1 character && not have a trailing space
         return (bLen > 0 && lastChar != 0x20); 
+    }
+
+    function toString(bytes32 source) internal pure returns (string memory result) {
+        uint8 bLen;
+        while (bLen < 32 && source[bLen] != 0) {
+            unchecked{
+                ++bLen;
+            }
+        }
+        assembly {
+            result := mload(0x40)
+            // new "memory end" including padding (the string isn't larger than 32 bytes)
+            mstore(0x40, add(result, 0x40))
+            // store length in memory
+            mstore(result, bLen)
+            // write actual data
+            mstore(add(result, 0x20), source)
+        }
     }
 }
